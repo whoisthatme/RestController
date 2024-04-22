@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     }
 
     public User saveUser(User user) {
-        String  encodedPassword = customPasswordEncoder.encode(user.getPassword());
+        String encodedPassword = customPasswordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
         return userRepository.save(user);
     }
@@ -57,6 +57,7 @@ public class UserServiceImpl implements UserDetailsService, UserService {
     public String getPlainPassword(User user) {
         return new String(Base64.getDecoder().decode(user.getPassword()));
     }
+
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
