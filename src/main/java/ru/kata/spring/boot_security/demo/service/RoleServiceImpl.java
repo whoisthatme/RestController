@@ -1,40 +1,39 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import ru.kata.spring.boot_security.demo.dao.RoleDao;
+import ru.kata.spring.boot_security.demo.dao.RoleDAO;
 import ru.kata.spring.boot_security.demo.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class RoleServiceImpl implements RoleService {
-    private final RoleDao roleDao;
+
+    private final RoleDAO roleDAO;
 
     @Autowired
-    public RoleServiceImpl(RoleDao roleDao) {
-        this.roleDao = roleDao;
+    public RoleServiceImpl(RoleDAO roleDAO) {
+        this.roleDAO = roleDAO;
     }
 
     @Override
-    public List<Role> getAllRoles() {
-        return roleDao.getAllRoles();
+    public List<Role> findAllRole() {
+        return roleDAO.findAll();
     }
 
     @Override
-    public Role getRole(String userRole) {
-        return roleDao.getRole(userRole);
+    @PostConstruct
+    public void addDefaultRole() {
+        roleDAO.save(new Role("ROLE_USER"));
+        roleDAO.save(new Role("ROLE_ADMIN"));
     }
 
     @Override
-    public Role getRoleById(Long id) {
-        return roleDao.getRoleById(id);
-    }
-
-    @Override
-    @Transactional
-    public void addRole(Role role) {
-        roleDao.addRole(role);
+    public Set<Role> findByIdRoles(List<Long> roles) {
+        return new HashSet<>(roleDAO.findAllById(roles));
     }
 }

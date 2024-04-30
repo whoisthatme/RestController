@@ -1,69 +1,85 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import ru.kata.spring.boot_security.demo.dao.UserDao;
+import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.dao.RoleDAO;
+import ru.kata.spring.boot_security.demo.dao.UserDAO;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+@Transactional
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService {
-    private final UserDao userDao;
+public class UserServiceImpl implements UserService {
+
+    private final UserDAO userDAO;
+    private final RoleDAO roleDAO;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    @Lazy
-    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
-        this.userDao = userDao;
+    public UserServiceImpl(UserDAO userDAO, RoleDAO roleDAO, PasswordEncoder passwordEncoder) {
+        this.userDAO = userDAO;
+        this.roleDAO = roleDAO;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    @Transactional
-    public void saveUser(User user) {
+    public User passwordCoder(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userDao.saveUser(user);
+        return user;
     }
 
     @Override
-    @Transactional
-    public void updateUser(User user) {
-        if (!user.getPassword().equals(userDao.getUserById(user.getId()).getPassword())) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+    public List<User> findAll() {
+        return userDAO.findAll();
+    }
+
+    @Override
+    public User getById(long id) {
+        User user = null;
+        Optional<User> optional = userDAO.findById(id);
+        if (optional.isPresent()) {
+            user = optional.get();
         }
-        userDao.updateUser(user);
+        return user;
     }
 
     @Override
-    @Transactional
-    public void deleteUser(long id) {
-        userDao.deleteUser(id);
+    public void save(User user) {
+        userDAO.save(passwordCoder(user));
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userDao.getAllUsers();
+    public void update(User user) {
+        userDAO.save(user);
     }
 
     @Override
-    public User getUserByLogin(String login) {
-        return userDao.getUserByLogin(login);
+    public void deleteById(long id) {
+        userDAO.deleteById(id);
     }
 
     @Override
-    public User getUserById(long id) {
-        return userDao.getUserById(id);
+    public User findByUsername(String username) {
+        return userDAO.findByUsername(username);
     }
 
     @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        return userDao.getUserByLogin(login);
+    @PostConstruct
+    public void addDefaultUser() {
+        Set<Role> roles1 = new HashSet<>();
+        roles1.add(roleDAO.findById(1L).orElse(null));
+        Set<Role> roles2 = new HashSet<>();
+        roles2.add(roleDAO.findById(1L).orElse(null));
+        roles2.add(roleDAO.findById(2L).orElse(null));
+        User user1 = new User("Lana", "Bana", (byte) 21, "user@mail.com", "user", "user", roles1);
+        User user2 = new User("Kana", "Fana", (byte) 25, "admin@mail.com", "admin", "admin", roles2);
+        save(user1);
+        save(user2);
     }
 }
