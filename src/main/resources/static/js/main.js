@@ -29,7 +29,7 @@ const userFetch = {
         headers: userFetch.head,
         body: JSON.stringify(user)
     }),
-    updateUser: async (user, id) => await fetch(`api/users/${id}`, {
+    updateUser: async (user, id) => await fetch(`api/users`, {
         method: 'PUT',
         headers: userFetch.head,
         body: JSON.stringify(user)

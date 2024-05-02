@@ -1,5 +1,8 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.event.EventListener;
 import ru.kata.spring.boot_security.demo.dao.RoleDAO;
 import ru.kata.spring.boot_security.demo.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +29,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @PostConstruct
+    @EventListener(ApplicationStartedEvent.class)
     public void addDefaultRole() {
         roleDAO.save(new Role("ROLE_USER"));
         roleDAO.save(new Role("ROLE_ADMIN"));

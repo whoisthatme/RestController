@@ -10,22 +10,26 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
     private final SuccessUserHandler successUserHandler;
 
-    public SecurityConfig(@Qualifier("userDetailsServiceImpl") UserDetailsServiceImpl userDetailsService,
+    public SecurityConfig(@Qualifier("userService") UserService userService,
+                          PasswordEncoder passwordEncoder,
                           SuccessUserHandler successUserHandler) {
-        this.userDetailsService = userDetailsService;
+        this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
         this.successUserHandler = successUserHandler;
     }
 
     @Autowired
     protected void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(userService).passwordEncoder(passwordEncoder);
     }
 
     @Override
@@ -47,10 +51,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                 .logoutSuccessUrl("/login")
                 .and().csrf().disable();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(12);
     }
 }
